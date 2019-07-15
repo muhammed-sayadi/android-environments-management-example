@@ -1,0 +1,91 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "io.sayadi.environment_management_example"
+        minSdkVersion 23
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        
+        ext.getProperties = { environmentName ->
+
+            String basePath = './environments/'
+            String sharedName = 'application'
+            String extension = '.properties'
+
+            Properties properties = new Properties()
+
+            // Get shared properties
+            String sharedPath = basePath + sharedName + extension
+            properties.load(new FileInputStream(file(sharedPath)))
+
+            // Get non-prod properties for non-prod environments
+            // and add or override in properties
+            if (environmentName != 'prod') {
+                String nonProdPath = basePath + sharedName + '-non-prod' + extension
+                Properties nonProdProperties = new Properties()
+                nonProdProperties.load(new FileInputStream(file(nonProdPath)))
+
+                nonProdProperties.each { property ->
+                    properties.put(property.key, property.value)
+                }
+            }
+
+            // Get environment-specific properties
+            // and add or override in properties
+            String environmentPath = basePath + sharedName + '-' + environmentName + extension
+            Properties environmentProperties = new Properties()
+            environmentProperties.load(new FileInputStream(file(environmentPath)))
+
+            environmentProperties.each { property ->
+                properties.put(property.key, property.value)
+            }
+
+            return properties
+        }
+
+        dev {
+            applicationIdSuffix ".dev"
+            debuggable true
+            getProperties('dev').each { property ->
+                buildConfigField 'String', property.key, property.value
+            }
+        }
+        staging {
+            applicationIdSuffix ".staging"
+            debuggable true
+            getProperties('staging').each { property ->
+                buildConfigField 'String', property.key, property.value
+            }
+        }
+        _test {
+            applicationIdSuffix "._test"
+            debuggable true
+            getProperties('_test').each { property ->
+                buildConfigField 'String', property.key, property.value
+            }
+        }
+        prod {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            getProperties('prod').each { property ->
+                buildConfigField 'String', property.key, property.value
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    implementation 'com.android.support:design:28.0.0'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
