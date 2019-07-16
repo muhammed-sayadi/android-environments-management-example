@@ -52,24 +52,30 @@ android {
         dev {
             applicationIdSuffix ".dev"
             debuggable true
+            signingConfig signingConfigs.debug
             getProperties('dev').each { property ->
                 buildConfigField 'String', property.key, property.value
             }
         }
+
         staging {
             applicationIdSuffix ".staging"
             debuggable true
+            signingConfig signingConfigs.debug
             getProperties('staging').each { property ->
                 buildConfigField 'String', property.key, property.value
             }
         }
+
         _test {
             applicationIdSuffix "._test"
             debuggable true
+            signingConfig signingConfigs.debug
             getProperties('_test').each { property ->
                 buildConfigField 'String', property.key, property.value
             }
         }
+
         prod {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
